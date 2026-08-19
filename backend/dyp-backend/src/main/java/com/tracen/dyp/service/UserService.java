@@ -24,6 +24,9 @@ public class UserService {
 
     public UserResponse createUser(CreateUserRequest request) {
 
+        if (userRepository.existsByEmail(request.getEmail())) {
+             throw new IllegalArgumentException("Email already registered");
+        }
         String hashedPassword =
                 passwordEncoder.encode(request.getPassword());
 
