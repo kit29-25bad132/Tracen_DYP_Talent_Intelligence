@@ -41,4 +41,17 @@ public Map<String, Object> handleIllegalArgumentException(
 
     return response;
 }
+
+@ExceptionHandler(InvalidCredentialsException.class)
+@ResponseStatus(HttpStatus.UNAUTHORIZED)
+public Map<String, Object> handleInvalidCredentials(
+        InvalidCredentialsException exception) {
+
+    Map<String, Object> response = new HashMap<>();
+
+    response.put("status", 401);
+    response.put("message", exception.getMessage());
+
+    return response;
+}
 }

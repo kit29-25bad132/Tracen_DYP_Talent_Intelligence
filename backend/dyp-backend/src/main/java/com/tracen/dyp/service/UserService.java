@@ -4,10 +4,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.tracen.dyp.dto.CreateUserRequest;
+import com.tracen.dyp.dto.LoginRequest;
+import com.tracen.dyp.dto.LoginResponse;
 import com.tracen.dyp.dto.UserResponse;
 import com.tracen.dyp.entity.User;
+import com.tracen.dyp.exception.InvalidCredentialsException;
 import com.tracen.dyp.repository.UserRepository;
-
 @Service
 public class UserService {
 
@@ -43,5 +45,25 @@ public class UserService {
                 savedUser.getName(),
                 savedUser.getEmail()
         );
+    }
+
+    public LoginResponse login(LoginRequest request) {
+
+    User user = userRepository.findByEmail(request.getEmail())
+            .orElseThrow(() ->
+                    new InvalidCredentialsException("Invalid email or password"));
+
+    if (!passwordEncoder.matches(
+            request.getPassword(),
+            user.getPassword())) {
+
+        throw new InvalidCredentialsException("Invalid email or password");
+    }
+
+    return new LoginResponse(
+            user.getId(),
+            user.getName(),
+            user.getEmail()
+    );
     }
 }
