@@ -1,7 +1,7 @@
 package com.tracen.dyp.service;
 
 import org.springframework.stereotype.Service;
-
+import com.tracen.dyp.security.CurrentUserService;
 import com.tracen.dyp.dto.CreateProfileRequest;
 import com.tracen.dyp.dto.ProfileCompletionResponse;
 import com.tracen.dyp.dto.ProfileResponse;
@@ -15,11 +15,12 @@ public class ProfileService {
 
     private final ProfileRepository profileRepository;
     private final UserRepository userRepository;
+    private final CurrentUserService currentUserService;
 
     public ProfileService(
             ProfileRepository profileRepository,
-            UserRepository userRepository) {
-
+            UserRepository userRepository, CurrentUserService currentUserService) {
+        this.currentUserService = currentUserService;
         this.profileRepository = profileRepository;
         this.userRepository = userRepository;
     }
@@ -27,11 +28,11 @@ public class ProfileService {
     public ProfileResponse createProfile(
             Long userId,
             CreateProfileRequest request) {
-
+        currentUserService.verifyUserAccess(userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("User not found"));
-
+        
         if (profileRepository.existsByUserId(userId)) {
             throw new IllegalArgumentException(
                     "Profile already exists for this user");
@@ -57,7 +58,7 @@ public class ProfileService {
     }
 
     public ProfileResponse getProfile(Long userId) {
-
+        currentUserService.verifyUserAccess(userId);
         Profile profile = profileRepository.findByUserId(userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("Profile not found"));
@@ -68,7 +69,7 @@ public class ProfileService {
     public ProfileResponse updateProfile(
             Long userId,
             CreateProfileRequest request) {
-
+        currentUserService.verifyUserAccess(userId);
         Profile profile = profileRepository.findByUserId(userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("Profile not found"));
@@ -91,7 +92,7 @@ public class ProfileService {
     }
 
     public ProfileCompletionResponse getProfileCompletion(Long userId) {
-
+    currentUserService.verifyUserAccess(userId);
     Profile profile = profileRepository.findByUserId(userId)
             .orElseThrow(() ->
                     new IllegalArgumentException("Profile not found"));

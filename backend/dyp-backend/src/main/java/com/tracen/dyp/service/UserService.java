@@ -10,25 +10,32 @@ import com.tracen.dyp.dto.UserResponse;
 import com.tracen.dyp.entity.User;
 import com.tracen.dyp.exception.InvalidCredentialsException;
 import com.tracen.dyp.repository.UserRepository;
+import com.tracen.dyp.security.JwtService;
+
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public UserService(
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService) {
 
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     public UserResponse createUser(CreateUserRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-             throw new IllegalArgumentException("Email already registered");
+            throw new IllegalArgumentException(
+                    "Email already registered");
         }
+
         String hashedPassword =
                 passwordEncoder.encode(request.getPassword());
 
@@ -49,21 +56,29 @@ public class UserService {
 
     public LoginResponse login(LoginRequest request) {
 
-    User user = userRepository.findByEmail(request.getEmail())
-            .orElseThrow(() ->
-                    new InvalidCredentialsException("Invalid email or password"));
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() ->
+                        new InvalidCredentialsException(
+                                "Invalid email or password"));
 
-    if (!passwordEncoder.matches(
-            request.getPassword(),
-            user.getPassword())) {
+        if (!passwordEncoder.matches(
+                request.getPassword(),
+                user.getPassword())) {
 
-        throw new InvalidCredentialsException("Invalid email or password");
-    }
+            throw new InvalidCredentialsException(
+                    "Invalid email or password");
+        }
 
-    return new LoginResponse(
-            user.getId(),
-            user.getName(),
-            user.getEmail()
-    );
+        String token = jwtService.generateToken(
+                user.getId(),
+                user.getEmail()
+        );
+
+        return new LoginResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                token
+        );
     }
 }
