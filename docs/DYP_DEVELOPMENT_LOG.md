@@ -2,9 +2,9 @@
 
 > **Project:** TRACEN DYP — Talent Intelligence Platform  
 > **DYP:** Discover Your Potential  
-> **Development Period:** Day 1 → Day 9  
-> **Current Checkpoint:** Phase 4 — Profile & Goal Discovery  
-> **Latest Commit:** `501e94e` — `wip: continue phase 4 profile workflow`
+> **Development Period:** Day 1 → Day 10
+> **Current Checkpoint:** Phase 4 — Profile & Goal Discovery — **COMPLETED**
+> **Latest Git Checkpoint:** Phase 4 completion + security verification
 
 ---
 
@@ -80,10 +80,10 @@ POST /api/users
 PostgreSQL Setup       ✅
 Spring Boot Setup      ✅
 Maven Setup             ✅
-Database Connection    ✅
-Backend Structure      ✅
-User Persistence       ✅
-Git/GitHub Setup       ✅
+Database Connection     ✅
+Backend Structure       ✅
+User Persistence        ✅
+Git/GitHub Setup        ✅
 ```
 
 ---
@@ -304,9 +304,9 @@ Introduced the `Profile` entity and its relationship with `User`.
 
 ```text
 User
-  │
-  │ 1 : 1
-  ▼
+ │
+ │ 1 : 1
+ ▼
 Profile
 ```
 
@@ -447,11 +447,16 @@ Updated project architecture documentation to reflect:
 - Future intelligence engines
 - DYP's long-term workflow
 
-## Phase 4 Status
+## Phase 4 Status at Day 8
 
 Profile backend was functional, but the phase was **not yet considered complete**.
 
-Remaining work included profile update / completion workflow and full verification.
+Remaining work included:
+
+- Profile update workflow
+- Profile completion workflow
+- Full authorization verification
+- Full API verification
 
 ---
 
@@ -465,7 +470,7 @@ Remaining work included profile update / completion workflow and full verificati
 
 Continued the remaining Profile workflow rather than moving prematurely to Assessment Planning.
 
-The current implementation contains:
+The implementation contained:
 
 ```text
 Profile Entity
@@ -481,38 +486,9 @@ PostgreSQL Persistence
 
 ## Git Checkpoint
 
-Current repository state:
+The repository was maintained as a WIP checkpoint before final Phase 4 verification.
 
-```text
-On branch main
-Your branch is up to date with 'origin/main'.
-
-nothing to commit, working tree clean
-```
-
-Latest commit:
-
-```text
-501e94e wip: continue phase 4 profile workflow
-```
-
-Recent project history:
-
-```text
-501e94e wip: continue phase 4 profile workflow
-c28c915 docs: add DYP system architecture
-b0ebe33 docs: add DYP system architecture
-ebcd3e5 feat: add profile completion tracking
-5e37287 Revise README for updated DYP platform focus and today progress
-```
-
-## Important Checkpoint
-
-The latest commit deliberately remains a **WIP checkpoint**.
-
-Phase 4 has **not** been marked finished yet.
-
-The project rule is:
+The development rule remained:
 
 ```text
 Finish Phase
@@ -532,99 +508,507 @@ Push
 Next Phase
 ```
 
-Therefore, the next development session should finish and verify the remaining Phase 4 requirements before starting Phase 5.
+Therefore, Phase 4 was not marked complete until the remaining requirements were implemented and verified.
 
 ---
 
-# Phase 4 — Current Completion Matrix
+# Day 10 — Phase 4 Completion + Security Verification
+
+## Phase
+
+> **Phase 4 — Profile & Goal Discovery — COMPLETED**
+
+Phase 4 was completed on the backend after implementing and verifying the remaining profile workflow and authorization requirements.
+
+The Phase 4 implementation now provides the student context required before the DYP assessment-planning stage.
+
+---
+
+## Completed Profile Workflow
+
+The profile workflow now supports:
+
+```text
+User
+  ↓
+Authentication
+  ↓
+Profile Creation
+  ↓
+Profile Retrieval
+  ↓
+Profile Update
+  ↓
+Profile Completion
+  ↓
+Assessment Planning
+```
+
+---
+
+## Authentication + JWT Security Verification
+
+JWT authentication was integrated into the protected profile workflow.
+
+The backend uses:
+
+```text
+Login
+  ↓
+JWT Generation
+  ↓
+Bearer Token
+  ↓
+JWT Authentication Filter
+  ↓
+SecurityContext
+  ↓
+CurrentUserService
+  ↓
+User Access Verification
+  ↓
+Protected Profile API
+```
+
+### JWT Secret Configuration
+
+The JWT signing secret was externalized rather than hardcoded.
+
+The application reads the secret through configuration:
+
+```text
+dyp.security.jwt-secret
+```
+
+The development environment supplies:
+
+```powershell
+$env:JWT_SECRET="..."
+```
+
+The JWT secret is therefore kept outside the Git-tracked source code.
+
+### Database Password Configuration
+
+The PostgreSQL password remains externalized through:
+
+```powershell
+$env:DB_PASSWORD
+```
+
+---
+
+# Security Configuration
+
+The backend security configuration is located at:
+
+```text
+src/main/java/com/tracen/dyp/config/SecurityConfig.java
+```
+
+The security configuration:
+
+- Disables CSRF for the stateless REST API
+- Uses stateless sessions
+- Permits user registration
+- Permits user login
+- Requires authentication for protected endpoints
+- Registers the JWT authentication filter
+
+Relevant public endpoints:
+
+```text
+POST /api/users
+POST /api/users/login
+```
+
+Protected endpoints require:
+
+```http
+Authorization: Bearer <JWT>
+```
+
+---
+
+# Current User Authorization
+
+Introduced / verified:
+
+```text
+CurrentUserService
+```
+
+The service retrieves the authenticated user ID from Spring Security's `SecurityContext`.
+
+The protected profile workflow verifies that the authenticated user matches the requested `userId`.
+
+Therefore:
+
+```text
+Authenticated User 10
+        ↓
+Request /api/users/10/profile
+        ↓
+Allowed ✅
+```
+
+while:
+
+```text
+Authenticated User 10
+        ↓
+Request /api/users/7/profile
+        ↓
+Access Denied ❌
+```
+
+This prevents one authenticated user from accessing another user's profile data.
+
+---
+
+# Phase 4 APIs
+
+## Create Profile
+
+```http
+POST /api/users/{userId}/profile
+Authorization: Bearer <JWT>
+```
+
+## Get Profile
+
+```http
+GET /api/users/{userId}/profile
+Authorization: Bearer <JWT>
+```
+
+## Update Profile
+
+```http
+PUT /api/users/{userId}/profile
+Authorization: Bearer <JWT>
+```
+
+## Profile Completion
+
+```http
+GET /api/users/{userId}/profile/completion
+Authorization: Bearer <JWT>
+```
+
+---
+
+# Phase 4 Profile Completion Logic
+
+The completion workflow evaluates the ten required profile fields:
+
+```text
+1. Education
+2. Degree
+3. Graduation Year
+4. Current Skills
+5. Work Experience
+6. Preferred Industries
+7. Dream Roles
+8. Weekly Learning Hours
+9. Career Priorities
+10. Preferred Work Location
+```
+
+Each completed field contributes to the completion percentage.
+
+Formula:
+
+```text
+completionPercentage =
+    (completedFields × 100) / totalFields
+```
+
+The workflow also returns whether the profile is fully completed.
+
+---
+
+# Phase 4 Verification
+
+## 1. User Registration
+
+Created a test user successfully:
+
+```text
+Email:
+testuser2026@dyp.com
+
+User ID:
+10
+```
+
+Registration returned the created user.
+
+```text
+id   name       email
+10   Test User  testuser2026@dyp.com
+```
+
+## 2. User Login
+
+Successfully authenticated the test user.
+
+The login response returned:
+
+```text
+id
+name
+email
+token
+```
+
+The JWT was extracted and supplied to protected requests through:
+
+```http
+Authorization: Bearer <token>
+```
+
+## 3. Protected Profile Retrieval
+
+Before profile creation, the API correctly reported:
+
+```text
+Profile not found
+```
+
+for:
+
+```http
+GET /api/users/10/profile
+```
+
+## 4. Profile Completion
+
+After the profile was created, the completion endpoint returned:
+
+```text
+userId                10
+profileExists         True
+completionPercentage  100
+completed             True
+```
+
+This confirms the completion calculation is working.
+
+## 5. Profile Update
+
+Updated the profile successfully using:
+
+```http
+PUT /api/users/10/profile
+```
+
+Verified profile data included:
+
+```text
+education:
+B.Tech Artificial Intelligence and Data Science
+
+degree:
+B.Tech AI & DS
+
+graduationYear:
+2029
+
+currentSkills:
+Java, Python, C, SQL, Spring Boot, PostgreSQL
+
+workExperience:
+Student Developer
+
+preferredIndustries:
+Software, AI, FinTech
+
+dreamRoles:
+Software Engineer, AI Engineer
+
+weeklyLearningHours:
+25
+
+careerPriorities:
+SDE preparation, AI engineering, internships
+
+preferredWorkLocation:
+Remote
+```
+
+## 6. Profile Retrieval After Update
+
+Verified the updated profile using:
+
+```http
+GET /api/users/10/profile
+```
+
+The persisted values were returned successfully.
+
+## 7. Completion After Update
+
+Verified:
+
+```http
+GET /api/users/10/profile/completion
+```
+
+Result:
+
+```text
+userId profileExists completionPercentage completed
+------ ------------- -------------------- ---------
+10     True          100                  True
+```
+
+## 8. Cross-User Access Protection
+
+Authenticated as user `10` and attempted to access:
+
+```http
+GET /api/users/7/profile
+```
+
+The request was rejected with:
+
+```text
+403 Forbidden
+```
+
+This verifies the user-specific authorization boundary.
+
+---
+
+# Phase 4 Completion Matrix
 
 ```text
 Student Profile Entity              ✅
+
 User ↔ Profile Relationship         ✅
+
 Profile Repository                  ✅
+
 Create Profile DTO                  ✅
+
 Profile Response DTO                ✅
+
 Profile Service                     ✅
+
 Profile Controller                  ✅
+
 Create Profile API                  ✅
+
 Get Profile API                     ✅
+
+Update Profile API                  ✅
+
 PostgreSQL Persistence              ✅
 
-Update Profile API                  ⏳
-Profile Completion Calculation      ⏳
-Profile Frontend                    ⏳
-End-to-End Profile Flow             ⏳
+Profile Completion Calculation     ✅
+
+Profile Completion API              ✅
+
+JWT Authentication                 ✅
+
+Protected Profile APIs              ✅
+
+Current User Verification           ✅
+
+Cross-User Access Protection        ✅
+
+API Verification                    ✅
+
+Database Verification               ✅
+
+End-to-End Backend Profile Flow     ✅
 ```
 
-> **Phase 4 is therefore still in progress.**
+> **Phase 4 — Profile & Goal Discovery is COMPLETE on the backend.**
 
 ---
 
-# Overall Project Progress by Day 9
+# Phase 4 Completion Gate
+
+The required development gate was completed:
 
 ```text
-Project Foundation
-        ↓
-Backend Foundation
-        ↓
-User Registration
-        ↓
-Authentication
-        ↓
-Profile Foundation
-        ↓
-Profile APIs
-        ↓
-Profile Persistence
-        ↓
-Profile Completion
-        ↓
-Phase 4 WIP
+Requirements
+     ↓
+Implementation
+     ↓
+Compile
+     ↓
+Run
+     ↓
+Authentication Test
+     ↓
+Profile API Test
+     ↓
+Update Test
+     ↓
+Completion Test
+     ↓
+Authorization Test
+     ↓
+Database Verification
+     ↓
+Documentation Update
+     ↓
+Commit
+     ↓
+Push
 ```
 
-The system has progressed from a blank backend environment to a working Spring Boot + PostgreSQL foundation with user authentication and the initial Student Profile workflow.
+Phase 5 can now be started.
 
 ---
 
 # Current Architecture
 
 ```text
-                    React / TypeScript
-                           │
-                           ▼
-                      REST APIs
-                           │
-                           ▼
-                    Spring Boot
-                           │
-       ┌───────────────────┼───────────────────┐
-       │                   │                   │
-       ▼                   ▼                   ▼
- Authentication      Profile Engine      Future Engines
-       │                   │                   │
-       └───────────────────┼───────────────────┘
-                           │
-                           ▼
-                      PostgreSQL
+                         React / TypeScript
+                                │
+                                ▼
+                           REST APIs
+                                │
+                                ▼
+                         Spring Boot
+                                │
+        ┌───────────────────────┼───────────────────────┐
+        │                       │                       │
+        ▼                       ▼                       ▼
+ Authentication           Profile Engine          Future Engines
+        │                       │                       │
+        └───────────────────────┼───────────────────────┘
+                                │
+                                ▼
+                           PostgreSQL
 ```
 
-Future engines include:
+## Backend Security Flow
 
 ```text
-Assessment Planning
-Assessment
-Evidence
-Scoring
-Talent Profile
-Career Intelligence
-Industry Readiness
-Gap Analysis
-Timeline Prediction
-Personalized Roadmap
-AI Recommendations
-DYP Report
-Dashboard
-Continuous Progress
+Client
+  ↓
+REST API
+  ↓
+Spring Security
+  ↓
+JWT Authentication Filter
+  ↓
+SecurityContext
+  ↓
+CurrentUserService
+  ↓
+Controller
+  ↓
+Service
+  ↓
+Repository
+  ↓
+PostgreSQL
 ```
 
 ---
@@ -667,6 +1051,97 @@ Continuous Progress
 
 ---
 
+# Future Intelligence Engines
+
+The long-term DYP platform includes:
+
+```text
+Assessment Planning
+Assessment
+Evidence
+Scoring
+Talent Profile
+Career Intelligence
+Industry Readiness
+Gap Analysis
+Timeline Prediction
+Personalized Roadmap
+AI Recommendations
+DYP Report
+Dashboard
+Continuous Progress
+```
+
+---
+
+# Overall Project Progress by Day 10
+
+```text
+Project Foundation
+        ↓
+Backend Foundation
+        ↓
+User Registration
+        ↓
+Authentication
+        ↓
+Profile Foundation
+        ↓
+Profile APIs
+        ↓
+Profile Persistence
+        ↓
+Profile Completion
+        ↓
+JWT Authorization
+        ↓
+Phase 4 Complete
+```
+
+The system has progressed from a blank backend environment to a working Spring Boot + PostgreSQL foundation with:
+
+- User registration
+- Password hashing
+- Login
+- JWT authentication
+- Protected endpoints
+- Current-user authorization
+- Student profile creation
+- Student profile retrieval
+- Student profile update
+- Profile completion calculation
+- PostgreSQL persistence
+
+---
+
+# Current Milestone
+
+## Student Profile Engine
+
+```text
+Backend Foundation       ████████████████████ 100%
+
+Authentication            ████████████████████ 100%
+
+Profile Backend           ████████████████████ 100%
+
+Phase 4                   ████████████████████ 100%
+
+Assessment Planning      ░░░░░░░░░░░░░░░░░░░░   0%
+
+Assessment Engine         ░░░░░░░░░░░░░░░░░░░░   0%
+
+Scoring Engine            ░░░░░░░░░░░░░░░░░░░░   0%
+
+Career Intelligence       ░░░░░░░░░░░░░░░░░░░░   0%
+
+AI Engine                 ░░░░░░░░░░░░░░░░░░░░   0%
+
+Dashboard                 ░░░░░░░░░░░░░░░░░░░░   0%
+```
+
+---
+
 # Development Philosophy
 
 DYP is being developed as a **backend-first, vertical-slice project**.
@@ -692,6 +1167,8 @@ Verify Database
         ↓
 Verify Requirement
         ↓
+Document
+        ↓
 Commit
         ↓
 Push
@@ -699,61 +1176,104 @@ Push
 
 ---
 
-# Current Milestone
+# Git Discipline
 
-## Student Profile Engine
+A completed phase must not remain as a WIP checkpoint.
+
+The project rule is:
 
 ```text
-Backend Foundation       ████████████████████ 100%
-Authentication           ████████████████████ 100%*
-Profile Backend          █████████████████░░░  85%
-Assessment Planning      ░░░░░░░░░░░░░░░░░░░░   0%
-Assessment Engine        ░░░░░░░░░░░░░░░░░░░░   0%
-Scoring Engine           ░░░░░░░░░░░░░░░░░░░░   0%
-Career Intelligence      ░░░░░░░░░░░░░░░░░░░░   0%
-AI Engine                ░░░░░░░░░░░░░░░░░░░░   0%
-Dashboard                ░░░░░░░░░░░░░░░░░░░░   0%
+Finish Phase
+     ↓
+Verify Everything
+     ↓
+Update Development Log
+     ↓
+git diff --check
+     ↓
+git status
+     ↓
+git add
+     ↓
+git commit
+     ↓
+git push
+     ↓
+Confirm clean working tree
+     ↓
+Start Next Phase
 ```
 
-`*` Core registration/login functionality is implemented; JWT/protected authorization remains a later security requirement.
+For Phase 4, the documentation update is currently visible as:
+
+```text
+modified: ../../docs/DYP_DEVELOPMENT_LOG.md
+```
+
+After saving this version, the documentation must be committed together with any other Phase 4 completion changes.
+
+---
+
+# Phase 4 Final Status
+
+```text
+╔════════════════════════════════════════════════════╗
+║                                                    ║
+║       PHASE 4 — PROFILE & GOAL DISCOVERY          ║
+║                                                    ║
+║                    COMPLETE ✅                     ║
+║                                                    ║
+╚════════════════════════════════════════════════════╝
+```
+
+Phase 4 backend requirements and verification are complete.
+
+**Do not reopen Phase 4 unless a later integration test exposes a real defect.**
 
 ---
 
 # Next Development Target
 
-> **Finish Phase 4 — Profile & Goal Discovery.**
+> **Phase 5 — Assessment Planning Engine**
 
-Do not begin Phase 5 until the remaining Phase 4 requirements are implemented and verified.
+The next stage should begin only after the Phase 4 completion commit has been created and pushed.
 
-Next target:
+Expected progression:
 
 ```text
-Update Profile API
+Phase 4 Complete
         ↓
-Profile Completion Calculation
+Commit Documentation + Final Changes
         ↓
-Profile API Verification
+Push to GitHub
         ↓
-Complete Phase 4
+Confirm Clean Working Tree
         ↓
-Git Commit
-        ↓
-GitHub Push
-        ↓
-Phase 5 — Assessment Planning Engine
+Phase 5 — Assessment Planning
 ```
 
 ---
 
-# End of Day 9
+# End of Day 10
 
-**Latest Git checkpoint:**
+## Milestone Achieved
 
 ```text
-501e94e
-wip: continue phase 4 profile workflow
+TRACEN DYP
+
+User
+ ↓
+Authentication
+ ↓
+JWT Security
+ ↓
+Profile & Goal Discovery
+ ↓
+Profile Completion
+ ↓
+Protected Student Context
 ```
 
-**Status:**
+**Phase 4 is officially complete on the backend.**
 
-> Phase 4 Profile & Goal Discovery — **IN PROGRESS**
+**Next: Phase 5 — Assessment Planning Engine.**
