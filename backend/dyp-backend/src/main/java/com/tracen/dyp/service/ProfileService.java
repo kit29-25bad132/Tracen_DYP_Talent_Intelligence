@@ -1,6 +1,8 @@
 package com.tracen.dyp.service;
 
 import org.springframework.stereotype.Service;
+import com.tracen.dyp.exception.ConflictException;
+import com.tracen.dyp.exception.ResourceNotFoundException;
 import com.tracen.dyp.security.CurrentUserService;
 import com.tracen.dyp.dto.CreateProfileRequest;
 import com.tracen.dyp.dto.ProfileCompletionResponse;
@@ -31,10 +33,10 @@ public class ProfileService {
         currentUserService.verifyUserAccess(userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("User not found"));
+                        new ResourceNotFoundException("User not found"));
         
         if (profileRepository.existsByUserId(userId)) {
-            throw new IllegalArgumentException(
+            throw new ConflictException(
                     "Profile already exists for this user");
         }
 
@@ -61,7 +63,7 @@ public class ProfileService {
         currentUserService.verifyUserAccess(userId);
         Profile profile = profileRepository.findByUserId(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Profile not found"));
+                        new ResourceNotFoundException("Profile not found"));
 
         return toResponse(profile);
     }
@@ -72,7 +74,7 @@ public class ProfileService {
         currentUserService.verifyUserAccess(userId);
         Profile profile = profileRepository.findByUserId(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Profile not found"));
+                        new ResourceNotFoundException("Profile not found"));
 
         profile.setEducation(request.getEducation());
         profile.setDegree(request.getDegree());
@@ -95,7 +97,7 @@ public class ProfileService {
     currentUserService.verifyUserAccess(userId);
     Profile profile = profileRepository.findByUserId(userId)
             .orElseThrow(() ->
-                    new IllegalArgumentException("Profile not found"));
+                    new ResourceNotFoundException("Profile not found"));
 
     int completedFields = 0;
     int totalFields = 10;

@@ -30,6 +30,30 @@ public class GlobalExceptionHandler {
 
         return response;
     }
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, Object> handleResourceNotFound(
+            ResourceNotFoundException exception) {
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", 404);
+        response.put("message", exception.getMessage());
+
+        return response;
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, Object> handleConflict(
+            ConflictException exception) {
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", 409);
+        response.put("message", exception.getMessage());
+
+        return response;
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
 @ResponseStatus(HttpStatus.CONFLICT)
 public Map<String, Object> handleIllegalArgumentException(

@@ -8,6 +8,7 @@ import com.tracen.dyp.dto.LoginRequest;
 import com.tracen.dyp.dto.LoginResponse;
 import com.tracen.dyp.dto.UserResponse;
 import com.tracen.dyp.entity.User;
+import com.tracen.dyp.exception.ConflictException;
 import com.tracen.dyp.exception.InvalidCredentialsException;
 import com.tracen.dyp.repository.UserRepository;
 import com.tracen.dyp.security.JwtService;
@@ -32,7 +33,7 @@ public class UserService {
     public UserResponse createUser(CreateUserRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException(
+            throw new ConflictException(
                     "Email already registered");
         }
 
