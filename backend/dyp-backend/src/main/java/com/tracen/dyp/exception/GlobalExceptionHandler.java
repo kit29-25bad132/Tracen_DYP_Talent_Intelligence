@@ -3,6 +3,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -50,6 +51,19 @@ public class GlobalExceptionHandler {
         Map<String, Object> response = new HashMap<>();
         response.put("status", 409);
         response.put("message", exception.getMessage());
+
+        return response;
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public Map<String, Object> handleAccessDenied(
+            AccessDeniedException exception) {
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", 403);
+        response.put("message",
+                "You are not authorized to access this resource");
 
         return response;
     }

@@ -9,6 +9,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.tracen.dyp.security.JwtAuthenticationFilter;
+import com.tracen.dyp.security.RestAccessDeniedHandler;
+import com.tracen.dyp.security.RestAuthenticationEntryPoint;
 
 @Configuration
 @EnableWebSecurity
@@ -41,6 +43,11 @@ public class SecurityConfig {
                     "/api/users/login"
                 ).permitAll()
                 .anyRequest().authenticated()
+            )
+
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(new RestAuthenticationEntryPoint())
+                .accessDeniedHandler(new RestAccessDeniedHandler())
             )
 
             .addFilterBefore(
