@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -34,6 +35,7 @@ import com.tracen.dyp.dto.LoginRequest;
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 class ProfileSecurityBoundaryTest {
 
     @Autowired
